@@ -1,0 +1,173 @@
+═══════════════════════════════════════════════════════════
+  MEMORY MAPPING - DEPLOYMENT CHECKLIST
+═══════════════════════════════════════════════════════════
+
+STEP 1: INSTALL AWS CLI
+═══════════════════════════════════════════════════════════
+□ Download: https://awscli.amazonaws.com/AWSCLIV2.msi
+□ Run installer
+□ Close and reopen PowerShell
+□ Test: aws --version
+
+
+STEP 2: GET AWS CREDENTIALS
+═══════════════════════════════════════════════════════════
+□ Go to: https://console.aws.amazon.com/iam/
+□ Click: Users → Add users
+□ Name: memory-mapping-dev
+□ Select: Programmatic access
+□ Attach: AdministratorAccess
+□ Copy Access Key ID: ____________________________
+□ Copy Secret Access Key: ____________________________
+
+
+STEP 3: CONFIGURE AWS CLI
+═══════════════════════════════════════════════════════════
+□ Run: aws configure
+□ Enter Access Key ID
+□ Enter Secret Access Key
+□ Enter Region: us-east-1
+□ Enter Format: json
+□ Test: aws sts get-caller-identity
+
+
+STEP 4: REQUEST BEDROCK ACCESS
+═══════════════════════════════════════════════════════════
+□ Go to: https://console.aws.amazon.com/bedrock/
+□ Click: Model access → Manage model access
+□ Select: Claude 3.5 Sonnet
+□ Select: Titan Embeddings G1 - Text
+□ Click: Request model access
+□ Wait for: Access granted
+
+
+STEP 5: CREATE .ENV FILE
+═══════════════════════════════════════════════════════════
+□ Run: Copy-Item .env.example .env
+□ Run: notepad .env
+□ Add AWS_ACCESS_KEY_ID
+□ Add AWS_SECRET_ACCESS_KEY
+□ Add AWS_REGION=us-east-1
+□ Save file
+
+
+STEP 6: INSTALL DEPENDENCIES
+═══════════════════════════════════════════════════════════
+□ Run: pip install -r requirements.txt
+□ Run: cd frontend
+□ Run: npm install
+□ Run: cd ..
+□ Run: cd infrastructure/cdk
+□ Run: pip install -r requirements.txt
+□ Run: cd ../..
+
+
+STEP 7: INSTALL AWS CDK
+═══════════════════════════════════════════════════════════
+□ Run: npm install -g aws-cdk
+□ Test: cdk --version
+
+
+STEP 8: BOOTSTRAP CDK
+═══════════════════════════════════════════════════════════
+□ Run: cd infrastructure/cdk
+□ Run: cdk bootstrap
+□ Wait for: ✅ Environment bootstrapped
+
+
+STEP 9: DEPLOY INFRASTRUCTURE (20-25 minutes)
+═══════════════════════════════════════════════════════════
+□ Run: cdk deploy --all
+□ Type 'y' for MemoryMappingStorageStack
+□ Type 'y' for MemoryMappingIngestionStack
+□ Type 'y' for MemoryMappingAIStack
+□ Type 'y' for MemoryMappingAPIStack
+□ Wait for deployment to complete
+
+SAVE THESE OUTPUTS:
+□ APIEndpoint: ____________________________
+□ UserPoolId: ____________________________
+□ ClientId: ____________________________
+
+
+STEP 10: UPDATE CONFIGURATION
+═══════════════════════════════════════════════════════════
+□ Run: cd ../..
+□ Run: notepad .env
+□ Add REACT_APP_API_BASE=<APIEndpoint from above>
+□ Add REACT_APP_USER_POOL_ID=<UserPoolId from above>
+□ Add REACT_APP_CLIENT_ID=<ClientId from above>
+□ Save file
+
+□ Run: cd frontend
+□ Create frontend/.env with REACT_APP_* values
+□ Run: cd ..
+
+
+STEP 11: SEED SAMPLE DATA
+═══════════════════════════════════════════════════════════
+□ Run: python scripts/seed_data.py
+□ Verify: "Sample data seeded successfully!"
+
+
+STEP 12: START APPLICATION
+═══════════════════════════════════════════════════════════
+□ Run: cd frontend
+□ Run: npm start
+□ Browser opens: http://localhost:3000
+
+
+STEP 13: TEST APPLICATION
+═══════════════════════════════════════════════════════════
+□ Dashboard loads with 3 projects
+□ Click "Projects" - see 3 project cards
+□ Click "Ask Memory"
+□ Type: "Why was Feature X delayed in March?"
+□ Click "Search"
+□ Get answer with sources and confidence score
+□ Click "Knowledge Graph" - see visualization
+□ Click "Decision Timeline" - see 5 decisions
+
+
+═══════════════════════════════════════════════════════════
+  🎉 DEPLOYMENT COMPLETE!
+═══════════════════════════════════════════════════════════
+
+Your Memory Mapping system is now running!
+
+Try these queries:
+• "Why was Feature X delayed in March?"
+• "What decisions were made about the API?"
+• "Who was involved in the microservices decision?"
+
+═══════════════════════════════════════════════════════════
+  TROUBLESHOOTING
+═══════════════════════════════════════════════════════════
+
+AWS CLI not found:
+→ Close and reopen PowerShell after installation
+
+CDK bootstrap fails:
+→ Run: aws sts get-caller-identity
+→ If fails: aws configure
+
+Bedrock access denied:
+→ Go to Bedrock console and request access
+
+Frontend shows Network Error:
+→ Check frontend/.env has correct API endpoint
+→ Test: curl <API_ENDPOINT>/projects
+
+No data showing:
+→ Run: python scripts/seed_data.py
+
+═══════════════════════════════════════════════════════════
+  CLEANUP (When done testing)
+═══════════════════════════════════════════════════════════
+
+To delete all resources:
+□ Run: cd infrastructure/cdk
+□ Run: cdk destroy --all
+□ Type 'y' to confirm each deletion
+
+═══════════════════════════════════════════════════════════
